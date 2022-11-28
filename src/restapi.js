@@ -7,56 +7,55 @@ import {
   firestore,
 } from './firebase.js'; 
 
+const isDebug = (process.env.NODE_ENV !== 'production');
+
 log4js.configure({
   appenders: {
-    console: {
-      type: 'console',
+    stdout: {
+      type: 'stdout',
+      layout: {
+        type: 'pattern',
+        pattern: isDebug ? (
+          '%[[%d{ISO8601_WITH_TZ_OFFSET}] [%p]%] %m'
+        ) : (
+          '[%d{ISO8601_WITH_TZ_OFFSET}] [%p] %m'
+        ),
+      },
     },
-    system: {
-      type: 'dateFile',
-      filename: '/var/log/api-app/system.log',
-      pattern: '-yyyy-MM-dd',
+    stderr: {
+      type: 'stderr',
+      layout: {
+        type: 'pattern',
+        pattern: isDebug ? (
+          '%[[%d{ISO8601_WITH_TZ_OFFSET}] [%p]%] %m'
+        ) : (
+          '[%d{ISO8601_WITH_TZ_OFFSET}] [%p] %m'
+        ),
+      },
     },
-    error: {
-      type: 'dateFile',
-      filename: '/var/log/api-app/error.log',
-      pattern: '-yyyy-MM-dd',
+    filteredStdout: {
+      type: 'logLevelFilter',
+      appender: 'stdout',
+      level: isDebug ? 'trace' : 'info',
+      maxLevel: 'warn',
+    },
+    filteredStderr: {
+      type: 'logLevelFilter',
+      appender: 'stderr',
+      level: 'error',
     },
   },
   categories: {
     default: {
       appenders: [
-        'console',
-        'system',
+        'filteredStdout',
+        'filteredStderr',
       ],
-      level: 'all',
-    },
-    api_default: {
-      appenders: [
-        'console',
-        'system',
-      ],
-      level: 'all',
-    },
-    api_error: {
-      appenders: [
-        'console',
-        'error',
-      ],
-      level: 'warn',
-    },
-    api_express: {
-      appenders: [
-        'console',
-        'system',
-      ],
-      level: 'all',
+      level: 'trace',
     },
   },
 });
-
-const logger = log4js.getLogger('api_default');
-const errorLogger = log4js.getLogger('api_error');
+const logger = log4js.getLogger('default');
 
 const app = express();
 app.use(express.json());
@@ -209,7 +208,7 @@ export const launch = () => {
           },
         });
       }).catch(err => {
-        errorLogger.error(`Failed to add endpoint. / ${err.code} ${err.name} ${err.message}`);
+        logger.error(`Failed to add endpoint. / ${err.code} ${err.name} ${err.message}`);
         return res.status(500).send('Internal error occured');
       });
     });
@@ -239,7 +238,7 @@ export const launch = () => {
 
         return res.status(200).send(rtnEndpoints);
       }).catch(err => {
-        errorLogger.error(`Failed to get endpoints of ${uid}. / ${err.code} ${err.name} ${err.message}`);
+        logger.error(`Failed to get endpoints of ${uid}. / ${err.code} ${err.name} ${err.message}`);
         return res.status(500).send('Internal error occured');
       });
     });
@@ -360,7 +359,7 @@ export const launch = () => {
             },
           });
         }).catch(err => {
-          errorLogger.error(`Failed to update endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
+          logger.error(`Failed to update endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
           return res.status(404).send('Endpoint does not exist');
         });
       });
@@ -398,7 +397,7 @@ export const launch = () => {
             },
           });
         }).catch(err => {
-          errorLogger.error(`Failed to delete endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
+          logger.error(`Failed to delete endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
           return res.status(500).send('Internal error occured');
         });
       });
@@ -407,7 +406,7 @@ export const launch = () => {
   
 
   // Listen
-  app.listen(8080, () => {
+  app.listen(process.env.PORT || 80, () => {
     logger.info('REST API server started');
   });
 };
