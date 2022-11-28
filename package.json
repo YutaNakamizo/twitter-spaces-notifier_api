@@ -9,9 +9,9 @@
     "express": "^4.17.3",
     "firebase-admin": "^10.1.0",
     "log4js": "^6.4.5",
+    "mongodb": "^4.12.1",
     "validator": "^13.7.0"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -12,6 +12,8 @@ COPY --chown=node:node . .
 
 ENV PORT="80"
 ENV GOOGLE_APPLICATION_CREDENTIALS="/secrets/google-service-account.json"
+ENV MONGO_URI="mongodb://localhost:27017/"
+ENV MONGO_DATABASE="twspaces-notifier"
 ENV NOTIF_TARGETS=""
 ENV ALLOW_ORIGIN=""
 
