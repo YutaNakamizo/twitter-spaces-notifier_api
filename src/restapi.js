@@ -9,6 +9,9 @@ import {
 import {
   mongoDatabase,
 } from './mongodb.js';
+import {
+  ObjectId,
+} from 'mongodb';
 
 const isDebug = (process.env.NODE_ENV !== 'production');
 
@@ -254,6 +257,8 @@ export const launch = () => {
   
   //// Update
   app.put('/api/endpoints/:id', (req, res) => {
+    const now = new Date();
+
     const {
       id,
     } = req.params;
@@ -343,34 +348,34 @@ export const launch = () => {
         uid,
       } = decodedToken;
 
-      const targetDocRef = firestore.doc(`endpoints/${id}`);
-      return targetDocRef.get().then(doc => {
-        if(!doc.exists) {
+      logger.info(`Update endpoint ${id} / ${uid}`);
+      return mongoDatabase.collection('endpoints').findOneAndUpdate(
+        {
+          _id: ObjectId(id),
+          owner: uid,
+        },
+        {
+          $set: {
+            usernames,
+            label,
+            dest,
+            destDetails,
+            updatedAt: now,
+          },
+        }
+      ).then(result => {
+        const originalDoc = result.value;
+        if(!originalDoc) {
           return res.status(404).send('Endpoint does not exist');
         }
 
-        if(!doc.data().owner === id) {
-          return res.status(403).send('You don\'t have access');
-        }
-
-        logger.info(`Update endpoint ${id} / ${uid}`);
-
-        return targetDocRef.update({
-          usernames,
-          label,
-          dest,
-          destDetails,
-        }).then(() => {
-          return res.status(200).send({
-            data: {
-              id,
-            },
-          });
-        }).catch(err => {
-          logger.error(`Failed to update endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
-          return res.status(404).send('Endpoint does not exist');
+        return res.status(200).send({
+          id,
         });
       });
+    }).catch(err => {
+      logger.error(`Failed to update endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
+      return res.status(500).send('Internal error occured');
     });
   });
 
