@@ -65,13 +65,7 @@ const logger = log4js.getLogger('default');
 
 const app = express();
 app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.ALLOW_ORIGIN,
-    methods: [ 'GET', 'HEAD', 'POST', 'PUT', 'DELETE' ],
-    preflightContinue: true,
-  })
-);
+app.use(cors());
 app.use(
   log4js.connectLogger(
     log4js.getLogger('api_express')
