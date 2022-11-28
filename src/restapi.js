@@ -6,6 +6,9 @@ import {
   auth,
   firestore,
 } from './firebase.js'; 
+import {
+  mongoDatabase,
+} from './mongodb.js';
 
 const isDebug = (process.env.NODE_ENV !== 'production');
 
@@ -108,6 +111,8 @@ export const launch = () => {
   // Endpoint
   //// Register
   app.post('/api/endpoints', (req, res) => {
+    const now = new Date();
+
     const {
       usernames,
       label,
@@ -195,16 +200,18 @@ export const launch = () => {
 
       logger.info(`Add endpoint / ${uid} ${label} ${dest} ${JSON.stringify(destDetails)}`);
 
-      return firestore.collection('endpoints').add({
+      return mongoDatabase.collection('endpoints').insertOne({
         owner: uid,
         usernames,
         label,
         dest,
         destDetails,
-      }).then(docRef => {
+        createdAt: now,
+        updatedAt: now,
+      }).then(result => {
         return res.status(200).send({
           data: {
-            id: docRef.id,
+            id: result.insertedId,
           },
         });
       }).catch(err => {
