@@ -230,17 +230,18 @@ export const launch = () => {
 
       logger.info(`Get endpoints / ${uid}`);
 
-      const query = firestore.collection('endpoints').where('owner', '==', uid);
-      return query.get().then(querySnapshot => {
+      return mongoDatabase.collection('endpoints').find({
+        owner: uid,
+      }).toArray().then(docs => {
         const rtnEndpoints = [];
         
-        for(const doc of querySnapshot.docs) {
-          rtnEndpoints.push({
-            id: doc.id,
-            createTime: doc.createTime.toDate().getTime(),
-            updateTime: doc.updateTime.toDate().getTime(),
-            ...doc.data(),
-          });
+        for(const doc of docs) {
+          const endpoint = {
+            id: doc._id,
+            ...doc,
+          };
+          delete endpoint._id;
+          rtnEndpoints.push(endpoint);
         }
 
         return res.status(200).send(rtnEndpoints);
