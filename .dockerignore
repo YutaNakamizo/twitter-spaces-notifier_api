@@ -1,0 +1,10 @@
+.git
+.gitignore
+LICENSE
+
+Dockerfile
+*.Dockerfile
+compose.d/
+
+node_modules/
+

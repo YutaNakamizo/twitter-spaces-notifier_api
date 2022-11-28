@@ -2,13 +2,9 @@ FROM node:16.17.0-alpine3.16
 RUN apk add --no-cache tini
 ENTRYPOINT [ "/sbin/tini", "--" ]
 
-ENV NODE_ENV production
+ENV NODE_ENV development
+VOLUME [ "/opt/app" ]
 WORKDIR /opt/app
-
-COPY --chown=node:node ./package.json ./package-lock.json .
-RUN npm ci
-
-COPY --chown=node:node . .
 
 ENV PORT="80"
 ENV GOOGLE_APPLICATION_CREDENTIALS="/secrets/google-service-account.json"

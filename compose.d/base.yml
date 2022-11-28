@@ -1,0 +1,7 @@
+version: "3"
+
+services:
+  twspaces-notif_api:
+    build:
+      context: ../
+
