@@ -390,30 +390,25 @@ export const launch = () => {
       const {
         uid,
       } = decodedToken;
-      
-      const targetDocRef = firestore.doc(`endpoints/${id}`);
-      return targetDocRef.get().then(doc => {
-        if(!doc.exists) {
+
+      logger.info(`Delete endpoint ${id} / ${uid}`);
+      return mongoDatabase.collection('endpoints').findOneAndDelete({
+        _id: ObjectId(id),
+        owner: uid,
+      }).then(result => {
+        const originalDoc = result.value;
+
+        if(!originalDoc) {
           return res.status(404).send('Endpoint does not exist');
         }
 
-        if(!doc.data().owner === id) {
-          return res.status(403).send('You don\'t have access');
-        }
-        
-        logger.info(`Delete endpoint ${id} / ${uid}`);
-
-        return targetDocRef.delete().then(result => {
-          return res.status(200).send({
-            data: {
-              id,
-            },
-          });
-        }).catch(err => {
-          logger.error(`Failed to delete endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
-          return res.status(500).send('Internal error occured');
+        return res.status(200).send({
+          id,
         });
       });
+    }).catch(err => {
+      logger.error(`Failed to delete endpoint ${id}. / ${err.code} ${err.name} ${err.message}`);
+      return res.status(500).send('Internal error occured');
     });
   });
   
